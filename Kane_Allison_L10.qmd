@@ -1,0 +1,217 @@
+---
+title: "L10 Joins & Missingness"
+subtitle: "Data Science 1 with R (STAT 301-1)"
+author: "Allison Kane"
+
+format:
+  html:
+    toc: true
+    embed-resources: true
+    code-fold: show
+    link-external-newwindow: true
+
+execute:
+  warning: false
+  
+from: markdown+emoji 
+---
+
+::: {.callout-tip icon=false}
+
+## Github Repo Link
+
+[Allison Github Link](https://github.com/stat301-1-2023-fall/L10-joins-missingness-akane2460.git)
+
+:::
+
+## Load packages
+
+```{r}
+#| label: load-pkgs
+#| code-fold: false
+
+# Loading package(s)
+
+library(tidyverse)
+library(fueleconomy)
+
+```
+
+## Datasets 
+
+```{r}
+#| label: datasets
+
+rankings_2021 <- read_rds("data/rankings_2021.rds")
+rankings_2022 <- read_rds("data/rankings_2022.rds")
+
+```
+
+
+## Exercises
+
+### Exercise 1 
+
+Describe in your own words what the functions `left_join`, `right_join`, `inner_join`, and `full_join` accomplish.
+
+::: {.callout-tip icon="false"}
+## Solution
+
+left_join describes the function to merge data, keeping all rows observed in the dataframe to be joined to.
+
+right_join describes the function to merge data that keeps all rows observed in the dataframe to be joined by. 
+
+inner_join describes the function to merge data that keeps only rows that appear in both dataframes. 
+
+full_join describes the function to merge data that keeps all rows from both dataframes. 
+
+:::
+
+### Exercise 2
+
+A relationship between `nycflights13::weather` and `nycflights13::airports` is possible. Describe the relationship using appropriate primary/foreign key vocabulary for relational data.
+
+
+::: {.callout-tip icon="false"}
+## Solution
+
+Airports likely has a primary key `faa` and weather has a foreign key `origin`.
+
+:::
+
+### Exercise 3
+
+What weather conditions make it more likely to see a departure delay?
+
+::: {.callout-tip icon="false"}
+## Solution
+
+Weather with poor visibility and wind speeds from 10-20 MPH are more likely to see longer departure delays. Flights with higher windspeeds generally might see cancelations, as the number of flights taking off at 40 MPH is much less. 
+
+:::
+
+
+### Exercise 4
+
+What does `anti_join(flights, airports, by = c("dest" = "faa"))` tell you? 
+
+What does `anti_join(airports, flights, by = c("faa" = "dest"))` tell you?
+
+::: {.callout-tip icon="false"}
+## Solution
+
+This first anti_join is searching the flights dataset for dest observations that do 
+not match faa in the airports dataset. 
+
+The second is searching the airports dataset for faa observations that do not 
+match dest in the flights dataset.
+
+:::
+
+
+### Exercise 5
+
+Combine `fueleconomy::vehicles` and `fueleconomy::common` to find the records for only the most common models.
+
+::: {.callout-tip icon="false"}
+## Solution
+
+```{r}
+#| label: ex 05
+
+inner_join(vehicles, common, by = c("model", "make")) |> 
+  group_by(model) |> 
+  summarize(
+    count = n()
+  ) |> 
+  arrange(desc(count)) |> 
+  head(5)
+
+```
+The most common model is the Ford F150 Pickup 2WD.
+:::
+
+
+## Case Study 1
+
+### Exploration 1
+
+Use `rankings_2021` and `rankings_2022` to answer the following questions^[This data was obtained from [Times Higher Education](https://www.timeshighereducation.com/rankings/united-states/2022#!/length/-1/sort_by/rank/sort_order/asc/cols/scores) and [College Scorecard](https://collegescorecard.ed.gov/data)]:
+
+a) What types of explicit missingness exists in `rankings_2021` and `rankings_2022`, if any?
+b) What types of implicit missingness exists in `rankings_2021` and `rankings_2022`, if any?
+c) What is the "key" and is it a primary, compound primary, foreign, or surrogate key?
+
+
+::: {.callout-tip icon="false"}
+## Solution
+
+a) Both datasets are missing values explicitly in the institution's tution_fee, room_board, salary_after_10, resources_score, engagement_score, outcomes_score, and environment_score.
+
+b) No implicit missingness is observed
+
+c) The key is `institution` and it is a primary key.
+
+:::
+
+### Exploration 2
+
+Combine `rankings_2021` and `rankings_2022` to answer the following questions:
+
+a) Which colleges had tuition increase the most from 2021 to 2022?
+b) Only considering colleges ranked in the top 400, which college increased the most in ranking from 2021 to 2022?
+c) Which colleges were ranked in 2021 but not ranked in 2022? which colleges were ranked in 2022 but not ranked in 2021?
+
+
+::: {.callout-tip icon="false"}
+## Solution
+
+a) The top 5 colleges with the highest tuition increases were Columbia University, Berea College, Emerson College, University of St Thomas and University of Minnesota.
+
+b) The college with biggest increases in ranking from 2021 to 2022 was Hendrix College
+
+c) Westminster College (Missouri) and Marian University (Indiana) were ranked 2021 but not 2022. No colleges were ranked in 2022 but not 2021.
+
+:::
+
+
+## Case Study 2
+
+Add a new variable called `year` which has the value of `2021` for each observation of `rankings_2021` and the value of `2022` for each observation of `rankings_2022`. Then use `bind_rows()` to combine `rankings_2021` and `rankings_2022`.  
+
+When might you use `bind_rows` or `bind_cols` instead of a `join`?
+
+::: {.callout-tip icon="false"}
+## Solution
+
+```{r}
+#| label: case study 2
+#| echo: false
+
+rankings_2021 <- rankings_2021 |> 
+  mutate(
+    year = "2021",
+    resources_score = as.numeric(resources_score),
+    engagement_score = as.numeric(engagement_score),
+    outcomes_score = as.numeric(outcomes_score),
+    environment_score = as.numeric(environment_score)
+  )
+
+rankings_2022 <- rankings_2022 |> 
+  mutate(
+    year = "2022",
+    resources_score = as.numeric(resources_score),
+    engagement_score = as.numeric(engagement_score),
+    outcomes_score = as.numeric(outcomes_score),
+    environment_score = as.numeric(environment_score)
+  )
+
+bind_rows(rankings_2022, rankings_2021)
+```
+
+It might be better to use bind_rows or bind_cols if one would rather have a side-by-side comparison of the observations across the same columns or rows. A join is more useful to see a merged dataframe based on a common key.
+
+:::
+
+
+

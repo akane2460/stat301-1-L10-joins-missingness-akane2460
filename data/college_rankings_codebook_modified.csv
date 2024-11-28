@@ -1,0 +1,13 @@
+Variables,Meaning
+institution,Name of the College/University
+state_abbr,State in which the institution is located (including DC)
+city,City in which the institution is located
+rank_2021,Times Higher Education Rank for indicated year (1 best)
+tuition_fees,Cost of tuition and fees
+room_board,Cost of room and board
+salary_after_10,Average salary 10 years after graduation
+overall_score,Overall score from Times Higher Education
+resources_score,Resources score from Times Higher Education (out of 30)
+engagement_score,Engagement score from Times Higher Education (out of 20)
+outcomes_score,Outcomes score from Times Higher Education (out of 40)
+environment_score,Environment score from Times Higher Education (out of 10)
